@@ -1,10 +1,17 @@
 const express = require("express");
 const router = new express.Router();
 const conn = require("../db/conn");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const secretKey = "secretKey";
 
 // register data
-router.post("/register", (req, res) => {
+router.post("/register", async function (req, res) {
+  const salt = bcrypt.genSalt(10);
   const { username, email, password } = req.body;
+  const test = await bcrypt.hash(password, parseInt(salt));
+
+  // console.log(test)
 
   conn.query(
     "SELECT * FROM singupuser WHERE email = ?",
@@ -15,8 +22,9 @@ router.post("/register", (req, res) => {
       } else {
         conn.query(
           "INSERT INTO singupuser (email,password,username) VALUES(?,?,?)",
-          [email, password, username],
+          [email, test, username],
           (err, result) => {
+            console.log(result, "hi");
             if (result) {
               res.status(201).json(req.body);
               console.log(req.body);
@@ -30,21 +38,42 @@ router.post("/register", (req, res) => {
   );
 });
 
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
+  console.log("email password", email, password);
+
   if (email != null) {
     conn.query(
-      "SELECT * FROM singupuser WHERE email= ? AND password= ?",
-      [email, password],
-      function (err, result) {
+      "SELECT * FROM singupuser WHERE email= ?",
+      [email],
+      async function (err, result) {
+        console.log("result", result);
         if (err) {
           res.status(422).json("please check data");
         }
         if (result.length > 0) {
-          res.status(201).json("ok");
+          const passwordCompare = await bcrypt.compare(
+            password,
+            result[0].password
+          );
+          console.log(passwordCompare);
+          if (passwordCompare) {
+            jwt.sign({ email },secretKey,{ expiresIn: "300s" },(err, token) => {
+                return res.json({
+                  data:result,
+                  token,
+                });
+              }
+            );
+          }
+          else{
+            return res.status(500).json({
+              message:"Password didnt match"
+            })
+          }
         } else {
-          res.status(402).json("please check");
+          return res.status(402).json("please check");
         }
       }
     );
@@ -144,18 +173,16 @@ router.get("/getusers/:id", (req, res) => {
 
 // test
 
-router.post("/data", (req, res) => {
-  const profile = req.body;
-  // conn.query("SELECT * FROM singupuser WHERE email = ?",[email],(err,result)=>{
-  //     if(err){
-  //         res.status(402).json(err)
-  //     }else if (result.length > 0 ){
-  //         res.status(201).json(result)
-  //     }else{
-  //         res.status(422).json("please check data")
-  //     }
-  // })
-  console.log(profile);
-});
+router.post("/data", verifyToken, (req, res) => {});
+
+function verifyToken(req, res, next) {
+  const bearerHeader = req.headers["uthorization"];
+  if (typeof bearerHeader !== undefined) {
+  } else {
+    res.status({
+      result: "Token is not valid",
+    });
+  }
+}
 
 module.exports = router;
