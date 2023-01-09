@@ -163,48 +163,19 @@ router.get("/getusers/:id", (req, res) => {
     }
   });
 });
-router.get("/get-user", (req, res) => {
-  if (req.headers && req.headers.authorization) {
-    const token = req.headers.authorization.split(" ");
-    const decodeData = jwt.decode(token[1]);
-    console.log(decodeData)
-    conn.query(
-      "SELECT * FROM singupuser WHERE id = ?",
-      [decodeData.id],
-      (err, result) => {
-        if (result) {
-          return res.status(200).json({
-            message: "ok",
-            data: result, 
-          });
-        } else {
-          throw new Error(`no data found or some error occured`);
-        }
-      }
-    );
+
+// test
+
+router.post("/data", verifyToken, (req, res) => {});
+
+function verifyToken(req, res, next) {
+  const bearerHeader = req.headers["uthorization"];
+  if (typeof bearerHeader !== undefined) {
   } else {
     return res.status(500).json({
       message: "not a bearer token",
     });
   }
-});
-
-// add user address and city
-router.put("/updateuser/:id", (req, res) => {
-  const { id } = req.params;
-  const { address, city } = req.body;
-
-  conn.query(
-    "UPDATE singupuser SET address=?,city=? WHERE id = ?",
-    [address, city, id],
-    (err, result) => {
-      if (err) {
-        res.status(422).json("error");
-      } else {
-        res.status(201).json(req.body);
-      }
-    }
-  );
-});
+}
 
 module.exports = router;
