@@ -163,61 +163,19 @@ router.get("/getusers/:id", (req, res) => {
     }
   });
 });
-router.get("/get-user", (req, res) => {
-  if (req.headers && req.headers.authorization) {
-    const token = req.headers.authorization.split(" ");
-    const decodeData = jwt.decode(token[1]);
-    conn.query(
-      "SELECT * FROM singupuser WHERE id = ?",
-      [decodeData.id],
-      (err, result) => {
-        if (result) {
-          return res.status(200).json({
-            message: "ok",
-            data: result,
-          });
-        } else {
-          throw new Error(`no data found or some error occured`);
-        }
-      }
-    );
+
+// test
+
+router.post("/data", verifyToken, (req, res) => {});
+
+function verifyToken(req, res, next) {
+  const bearerHeader = req.headers["uthorization"];
+  if (typeof bearerHeader !== undefined) {
   } else {
     return res.status(500).json({
       message: "not a bearer token",
     });
   }
-});
-
-// add user address and city
-router.put("/updateuser/:id", (req, res) => {
-  const { id } = req.params;
-  const { address, city,image } = req.body;
-
-  conn.query(
-    "UPDATE singupuser SET address=?,city=?, images=? WHERE id = ?",
-    [address, city,image, id],
-    (err, result) => {
-      if (err) {
-        return res.status(422).json("error");
-      } else {
-        return res.status(201).json(req.body);
-      }
-    }
-  );
-});
-
-// user detailes
-router.post("/userdetailes",(req,res)=>{
-  const  {desc,title,status,user_id,slug,image} = req.body
- 
- conn.query( "INSERT INTO post(`desc`,`title`,`status`,`user_id`,`slug`,`image`) VALUES(?,?,?,?,?,?)",[desc,title,status,user_id,slug,image],(err,result)=>{
-  if(err){
-    res.status(500).json("please check")
-  }else{
-    res.status(200).json(req.body)
-  }
- })
- console.log(req.body)
-})
+}
 
 module.exports = router;
