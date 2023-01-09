@@ -24,10 +24,8 @@ router.post("/register", async function (req, res) {
           "INSERT INTO singupuser (email,password,username) VALUES(?,?,?)",
           [email, test, username],
           (err, result) => {
-            console.log(result, "hi");
             if (result) {
               res.status(201).json(req.body);
-              console.log(req.body);
             } else {
               res.status(422).json("please check data");
             }
@@ -41,14 +39,12 @@ router.post("/register", async function (req, res) {
 router.post("/login", async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  console.log("email password", email, password);
 
   if (email != null) {
     conn.query(
       "SELECT * FROM singupuser WHERE email= ?",
       [email],
       async function (err, result) {
-        console.log("result", result);
         if (err) {
           res.status(422).json("please check data");
         }
@@ -57,20 +53,22 @@ router.post("/login", async (req, res) => {
             password,
             result[0].password
           );
-          console.log(passwordCompare);
           if (passwordCompare) {
-            jwt.sign({ email },secretKey,{ expiresIn: "300s" },(err, token) => {
+            jwt.sign(
+              { email, id: result[0].id },
+              secretKey,
+              { expiresIn: "300s" },
+              (err, token) => {
                 return res.json({
-                  data:result,
+                  data: result,
                   token,
                 });
               }
             );
-          }
-          else{
+          } else {
             return res.status(500).json({
-              message:"Password didnt match"
-            })
+              message: "Password didnt match",
+            });
           }
         } else {
           return res.status(402).json("please check");
@@ -82,7 +80,6 @@ router.post("/login", async (req, res) => {
 
 // add
 router.post("/user", (req, res) => {
-  console.log(req.body);
   const { name, age, email, address } = req.body;
   if (!name || !age || !email || !address) {
     res.status(422).json("please fill data");
@@ -93,7 +90,7 @@ router.post("/user", (req, res) => {
       "SELECT * FROM userdata WHERE email = ?",
       email,
       (err, result) => {
-        if (result.length) {
+        if (result) {
           res.status(422).json("The data is alredy exist");
         } else {
           conn.query(
@@ -101,10 +98,8 @@ router.post("/user", (req, res) => {
             { name, email, age, address },
             (err, result) => {
               if (err) {
-                console.log("err" + err);
               } else {
                 res.status(201).json(req.body);
-                console.log(req.body);
               }
             }
           );
@@ -131,7 +126,6 @@ router.get("/getusers", (req, res) => {
 
 router.delete("/deleteuser/:id", (req, res) => {
   const { id } = req.params;
-  console.log(id);
   conn.query("DELETE FROM userdata WHERE id = ?", id, (err, result) => {
     if (err) {
       res.status(422).json("error");
@@ -166,23 +160,64 @@ router.get("/getusers/:id", (req, res) => {
       res.status(422).json("error");
     } else {
       res.status(201).json(result);
-      console.log(result, "dwhdjqwdh");
     }
   });
 });
-
-// test
-
-router.post("/data", verifyToken, (req, res) => {});
-
-function verifyToken(req, res, next) {
-  const bearerHeader = req.headers["uthorization"];
-  if (typeof bearerHeader !== undefined) {
+router.get("/get-user", (req, res) => {
+  if (req.headers && req.headers.authorization) {
+    const token = req.headers.authorization.split(" ");
+    const decodeData = jwt.decode(token[1]);
+    conn.query(
+      "SELECT * FROM singupuser WHERE id = ?",
+      [decodeData.id],
+      (err, result) => {
+        if (result) {
+          return res.status(200).json({
+            message: "ok",
+            data: result,
+          });
+        } else {
+          throw new Error(`no data found or some error occured`);
+        }
+      }
+    );
   } else {
-    res.status({
-      result: "Token is not valid",
+    return res.status(500).json({
+      message: "not a bearer token",
     });
   }
-}
+});
+
+// add user address and city
+router.put("/updateuser/:id", (req, res) => {
+  const { id } = req.params;
+  const { address, city,image } = req.body;
+
+  conn.query(
+    "UPDATE singupuser SET address=?,city=?, images=? WHERE id = ?",
+    [address, city,image, id],
+    (err, result) => {
+      if (err) {
+        return res.status(422).json("error");
+      } else {
+        return res.status(201).json(req.body);
+      }
+    }
+  );
+});
+
+// user detailes
+router.post("/userdetailes",(req,res)=>{
+  const  {desc,title,status,user_id,slug,image} = req.body
+ 
+ conn.query( "INSERT INTO post(`desc`,`title`,`status`,`user_id`,`slug`,`image`) VALUES(?,?,?,?,?,?)",[desc,title,status,user_id,slug,image],(err,result)=>{
+  if(err){
+    res.status(500).json("please check")
+  }else{
+    res.status(200).json(req.body)
+  }
+ })
+ console.log(req.body)
+})
 
 module.exports = router;
