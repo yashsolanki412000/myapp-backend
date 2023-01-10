@@ -187,33 +187,75 @@ router.get("/get-user", (req, res) => {
 });
 //post userdetails
 
-router.post("/userdetailes",(req,res)=>{
-  const  {desc,title,status,userid,slug,image} = req.body
- conn.query( "INSERT INTO post(`desc`,`title`,`status`,`user_id`,`slug`,`image`) VALUES(?,?,?,?,?,?)",[desc,title,status,userid,slug,image],(err,result)=>{
+router.post("/userdetailes", (req, res) => {
+  const { desc, title, status, userid, slug, image } = req.body;
+  conn.query(
+    "INSERT INTO post(`desc`,`title`,`status`,`user_id`,`slug`,`image`) VALUES(?,?,?,?,?,?)",
+    [desc, title, status, userid, slug, image],
+    (err, result) => {
+      if (err) {
+        res.status(500).json("please check");
+      } else {
+        res.status(200).json(req.body);
+      }
+    }
+  );
+});
+
+// put address and city
+
+router.put("/updateuser/:id", (req, res) => {
+  const { id } = req.params;
+  const { address, city,images } = req.body;
+
+  conn.query(
+    "UPDATE singupuser SET  address=?,city=?,images=? WHERE id = ?",
+    [address, city,images, id],
+    (err, result) => {
+      if (err) {
+        res.status(422).json("error");
+      } else {
+        res.status(201).json(req.body);
+      }
+    }
+  );
+});
+
+// // test
+
+// router.post("/data", verifyToken, (req, res) => {});
+
+// function verifyToken(req, res, next) {
+//   const bearerHeader = req.headers["uthorization"];
+//   if (typeof bearerHeader !== undefined) {
+//   } else {
+//     return res.status(500).json({
+//       message: "not a bearer token",
+//     });
+//   }
+// }
+
+// two tables combine data
+
+router.get("/newuserdata",(req,res)=>{
+conn.query("SELECT post.id AS id, post.desc AS description,post.title AS title,post.image AS image, post.slug AS slug,singupuser.email AS email,singupuser.username AS username,singupuser.images AS profileimage From post INNER JOIN singupuser ON post.user_id = singupuser.id",(err,result)=>{
   if(err){
-    res.status(500).json("please check")
+   return res.status(500).json("something went wrong")
   }else{
-    res.status(200).json(req.body)
+    return res.status(200).json(result)
   }
- })
+})  
+})
+router.get("/getpostdata/:slug",(req,res)=>{
+  const {slug} = req.params
+  conn.query("SELECT post.id AS id, post.desc AS description,post.title AS title,post.image AS image, post.slug AS slug,singupuser.email AS email,singupuser.username AS username,singupuser.images AS profileimage From post INNER JOIN singupuser ON post.user_id = singupuser.id WHERE slug =?",slug,(err,result)=>{
+    if(err){
+      return res.status(500).json("somthing went wrong")
+    }else{
+      return res.status(200).json(result)
+    }
+  })
 })
 
-
-
-    
-
-// test
-
-router.post("/data", verifyToken, (req, res) => {});
-
-function verifyToken(req, res, next) {
-  const bearerHeader = req.headers["uthorization"];
-  if (typeof bearerHeader !== undefined) {
-  } else {
-    return res.status(500).json({
-      message: "not a bearer token",
-    });
-  }
-}
 
 module.exports = router;
