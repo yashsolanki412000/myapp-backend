@@ -164,6 +164,44 @@ router.get("/getusers/:id", (req, res) => {
   });
 });
 
+// get users- address and age
+router.get("/get-user", (req, res) => {
+  if (req.headers && req.headers.authorization) {
+    const token = req.headers.authorization.split(" ");
+    const decodeData = jwt.decode(token[1]);
+    conn.query(
+      "SELECT * FROM singupuser WHERE id = ?",
+      [decodeData.id],
+      (err, result) => {
+        if (result) {
+          return res.status(200).json({
+            message: "ok",
+            data: result,
+          });
+        } else {
+          throw new Error(`no data found or some error occured`);
+        }
+      }
+    );
+  }
+});
+//post userdetails
+
+router.post("/userdetailes",(req,res)=>{
+  const  {desc,title,status,userid,slug,image} = req.body
+ conn.query( "INSERT INTO post(`desc`,`title`,`status`,`user_id`,`slug`,`image`) VALUES(?,?,?,?,?,?)",[desc,title,status,userid,slug,image],(err,result)=>{
+  if(err){
+    res.status(500).json("please check")
+  }else{
+    res.status(200).json(req.body)
+  }
+ })
+})
+
+
+
+    
+
 // test
 
 router.post("/data", verifyToken, (req, res) => {});
