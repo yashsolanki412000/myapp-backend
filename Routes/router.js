@@ -257,5 +257,36 @@ router.get("/getpostdata/:slug",(req,res)=>{
   })
 })
 
+router.post("/userdetailes",(req,res)=>{
+  const  {desc,title,status,userid,slug,image} = req.body
+ conn.query( "INSERT INTO post(`desc`,`title`,`status`,`user_id`,`slug`,`image`) VALUES(?,?,?,?,?,?)",[desc,title,status,userid,slug,image],(err,result)=>{
+  if(err){
+    res.status(500).json("please check")
+  }else{
+    res.status(200).json(req.body)
+  }
+ })
+})
+
+router.delete("/deletepost/:slug", (req, res) => {
+  const { slug } = req.params;
+  conn.query("DELETE FROM post WHERE slug = ?", slug, (err, result) => {
+    if (err) {
+      res.status(422).json("error");
+    } else {
+      res.status(201).json(result);
+    }
+  });
+});
+router.post("/commentpost",(req,res)=>{
+  const {message,userid,postid,status} = req.body
+  conn.query("INSERT INTO postcomment(`message`,`user_id`,`status`,`post_id`) VALUES(?,?,?,?)",[message,userid,status,postid],(err,result)=>{
+    if(err){
+      res.status(500).json(err)
+    }else{
+      res.status(200).json(result)
+    }
+  })
+})
 
 module.exports = router;
