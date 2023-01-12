@@ -15,3 +15,5 @@ SELECT post.id AS id, post.desc AS description,post.title AS title,post.image AS
     From post 
     INNER JOIN singupuser 
     ON post.user_id = singupuser.id 
+
+SELECT postcomment.message AS message, singupuser.email AS email, singupuser.username AS username From postcomment INNER JOIN singupuser ON postcomment.user_id = singupuser.id WHERE postcomment.post_id = ?

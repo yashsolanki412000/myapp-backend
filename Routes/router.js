@@ -268,25 +268,68 @@ router.post("/userdetailes",(req,res)=>{
  })
 })
 
-router.delete("/deletepost/:slug", (req, res) => {
-  const { slug } = req.params;
-  conn.query("DELETE FROM post WHERE slug = ?", slug, (err, result) => {
-    if (err) {
-      res.status(422).json("error");
-    } else {
-      res.status(201).json(result);
-    }
-  });
-});
+// router.delete("/deletepost/:slug", (req, res) => {
+//   const { slug } = req.params;
+//   conn.query("DELETE FROM post WHERE slug = ?", slug, (err, result) => {
+//     if (err) {
+//        res.status(422).json("error");
+//     } else {
+//        res.status(201).json(result);
+//     }
+//   });
+// });
 router.post("/commentpost",(req,res)=>{
   const {message,userid,postid,status} = req.body
   conn.query("INSERT INTO postcomment(`message`,`user_id`,`status`,`post_id`) VALUES(?,?,?,?)",[message,userid,status,postid],(err,result)=>{
     if(err){
       res.status(500).json(err)
     }else{
-      res.status(200).json(result)
+      res.status(200).json(req.body)
     }
   })
 })
+router.delete("/deletecomment/:id",(req,res)=>{
+  const {id} = req.params
+ conn.query("DELETE FROM postcomment WHERE post_id = ?",[id],(err,result)=>{
+  if(err){
+    res.status(422).json(err)
+  }else{
+    conn.query("DELETE FROM post WHERE id = ?",[id],(err1,result1)=>{
+      if(err1){
+        res.status(422).json(err1)
+      }else{
+        res.status(200).json(result1)
+      }
+    })
+  }
+ })
+ // get comment message
+})
+
+router.get("/getcomment/:id",(req,res)=>{
+  const {id} = req.params
+  const message = req.body
+  if(!message){
+    res.status(402).json("no comments")
+  }else{
+  conn.query("SELECT * FROM postcomment WHERE post_id = ?",[id],(err,result)=>{
+    if(err){
+      res.status(422).json(err)
+    }else{
+      res.status(200).json(result)
+    }
+  })
+  }
+ })
+ router.get("/usercomment/:id",(req,res)=>{
+  const {id} = req.params
+  conn.query("SELECT postcomment.message AS message, singupuser.email AS email, singupuser.username AS username From postcomment INNER JOIN singupuser ON postcomment.user_id = singupuser.id WHERE postcomment.post_id = ?",id,(err,result)=>{
+    if(err){
+      res.status(422).json(err)
+    }else{
+      res.status(200).json(result)
+    }
+  })
+ })
 
 module.exports = router;
