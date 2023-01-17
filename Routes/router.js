@@ -331,5 +331,28 @@ router.get("/getcomment/:id",(req,res)=>{
     }
   })
  })
+ router.post("/userlike",(req,res)=>{
+  
+  const {likes,status,postid,userid} = req.body
+  conn.query("INSERT INTO postlike(`likes`,`status`,`user_id`,`post_id`) VALUES(?,?,?,?)",[likes,status,userid,postid],(err,result)=>{
+    if(err){
+      return res.status(402).json(err)
+    }else{
+      return res.status(200).json(result)
+    }
+  })
+ })
 
+ router.post("/likecount",(req,res)=>{
+  
+  const {postid} = req.body
+  conn.query("SELECT COUNT(*) as count FROM `postlike` WHERE post_id = ? AND likes = true",[postid],(err,result)=>{
+    if(err){
+      return res.status(402).json(err)
+    }else{
+      return res.status(200).json(result)
+    }
+  })
+ })
+ 
 module.exports = router;
