@@ -354,5 +354,34 @@ router.get("/getcomment/:id",(req,res)=>{
     }
   })
  })
+
+ router.post("/dislike",(req,res)=>{
+  const {userid,postid} = req.body
+  console.log(req.body)
+  conn.query("SELECT * FROM `postlike` WHERE user_id = ? AND post_id = ?",[userid,postid],(err,result)=>{
+    console.log(err,result)
+    if(err){
+      return res.status(402).json(err)
+    }else{
+      return res.status(402).json(result)
+    }
+  })
+ })
+
+ router.put("/updatelike",(req,res)=>{
+  const {userid,postid,likes} = req.body
+  console.log(req.body)
+  conn.query("SELECT * FROM postlike WHERE user_id AND post_id AND likes = true",[userid,postid,likes],(err,result)=>{
+    if(result){
+      conn.query("UPDATE postlike SET  likes = false",[likes],(error,result1)=>{
+        if(result1){
+          return res.status(200).json("false")
+        }else{
+          return res.status(402).json("true")
+        }
+      })
+    }
+  })
+ })
  
 module.exports = router;
