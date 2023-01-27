@@ -4,6 +4,7 @@ const conn = require("../db/conn");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const secretKey = "secretKey";
+const nodemailer = require("nodemailer");
 
 // register data
 router.post("/register", async function (req, res) {
@@ -46,7 +47,7 @@ router.post("/login", async (req, res) => {
       [email],
       async function (err, result) {
         if (err) {
-          res.status(422).json("please check data");
+          res.status(422).json("please check this email is already exist");
         }
         if (result.length > 0) {
           const passwordCompare = await bcrypt.compare(
@@ -383,5 +384,31 @@ router.get("/getcomment/:id",(req,res)=>{
     }
   })
  })
+ router.post("/sendmail",(req,res)=>{
+  let {test} = req.body
+  console.log(test)
+  let testAccount = nodemailer.createTestAccount();
+
+  let transporter = nodemailer.createTransport({
+    host: "smtp.ethereal.email",
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: 'eloy.jenkins12@ethereal.email',
+      pass: 'xvEh9BnADb9Gkg1Br7'
+    },
+  } ); 
+  let info = transporter.sendMail({
+    from: '"solanki yash 👻" <solankiyash1914@gmail.com>', // sender address
+    to: "harshil.iflair@gmail.com ", // list of receivers
+    subject: "Hello ✔", // Subject line
+    text: "Hello world?", // plain text body
+    html: `<div>
+    ${test}
+    </div>
+    `,
+  })
+ })
+ 
  
 module.exports = router;
